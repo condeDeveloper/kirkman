@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.so }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        so: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Os testes primeiro: sao eles que prendem os numeros das tabelas.
+      - name: Testes
+        run: dotnet test testes/Kirkman.Testes/Kirkman.Testes.csproj -c Release --nologo
+
+      # O passo mais pesado: provar que nao ha sistema com 11 pontos custa
+      # cinco milhoes de nos, mais que qualquer tamanho maior desta tabela.
+      - name: A existencia em cada tamanho, contra a condicao conhecida
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- existencia
+
+      - name: Os sistemas rotulados contra as simetrias de um deles
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- simetrias
+
+      - name: A escala das colegiais
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- escalas
+
+      - name: As quinze colegiais em sete dias
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- quinze
